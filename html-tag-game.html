@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกมฝึกทักษะ</title>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .question-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      margin: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .choice {
+      padding: 12px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .choice:hover {
+      background: #2980b9;
+    }
+    .result {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    .timer {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: red;
+    }
+    select,
+    button.restart,
+    button.exit {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button.restart {
+      background: #27ae60;
+      color: white;
+      cursor: pointer;
+    }
+    button.exit {
+      background: #e74c3c;
+      color: white;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    #game-area {
+      display: none;
+    }
+    .final-score {
+      font-size: 20px;
+      color: #333;
+      margin-top: 15px;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .choice, select, button.restart, button.exit {
+        font-size: 1rem;
+        padding: 12px 14px;
+      }
+    }
+    .menu-btn {
+  background: #3498db;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+}
+.menu-btn:hover {
+  background: #2980b9;
+}
+
+.menu-btn.exit {
+  background: #e74c3c;
+}
+.menu-btn.exit:hover {
+  background: #c0392b;
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="question-box" id="menu-area">
+    <h2>เลือกระดับความยาก:</h2>
+    <select id="difficulty">
+      <option value="easy">ง่าย</option>
+      <option value="medium">กลาง</option>
+      <option value="hard">ยาก</option>
+    </select>
+    <br>
+    <button class="menu-btn" onclick="startGame()">เริ่มเกม</button>
+    <button class="menu-btn exit" onclick="exitGame()">ออกจากเกม</button>
+  </div>
+
+  <div id="game-area" class="question-box">
+    <div class="timer" id="timer">เวลา: 10</div>
+    <div id="question">คำถามจะมาแสดงตรงนี้</div>
+    <div class="choices" id="choices"></div>
+    <div class="result" id="result"></div>
+    <div class="final-score" id="final-score"></div>
+    <button id="reset-btn" class="restart" onclick="resetGame()">กลับหน้าเลือกระดับ</button>
+  </div>
+
+  <audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+  <audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+  <script>
+    const questionBank = {
+      easy: [
+        { question: "ข้อใดคือองค์ประกอบพื้นฐานของสื่อดิจิทัล?", choices: ["ข้อความ", "เมาส์และคีย์บอร์ด", "โปรแกรมแอนตี้ไวรัส", "สายเคเบิล"], answer: "ข้อความ" },
+        { question: "ข้อใดต่อไปนี้ไม่ใช่ตัวอย่างของสื่อดิจิทัล?", choices: ["หนังสือพิมพ์กระดาษธรรมดา", "เว็บไซต์", "พอดแคสต์", "วิดีโอเกม"], answer: "หนังสือพิมพ์กระดาษธรรมดา" },
+        { question: "ข้อใดเป็นคุณสมบัติของเสียงในมัลติมีเดีย?", choices: ["ช่วยเพิ่มความน่าสนใจให้การนำเสนอ", "เป็นข้อความที่มีสีสัน", "เป็นภาพเคลื่อนไหวที่ไม่มีเสียง", "ใช้แสดงผลแบบสามมิติเท่านั้น"], answer: "ช่วยเพิ่มความน่าสนใจให้การนำเสนอ" },
+        { question: "เทคโนโลยี OCR ใช้กับองค์ประกอบใดของสื่อดิจิทัล?", choices: ["ข้อความจากการสแกน", "ภาพเคลื่อนไหว", "วิดีโอ", "เสียงจากไมโครโฟน"], answer: "ข้อความจากการสแกน" },
+        { question: "เหตุใดจึงต้องใช้โปรแกรมเฉพาะในการสร้างภาพเคลื่อนไหว?", choices: ["เพราะไฟล์มีขนาดเล็ก", "เพราะภาพเคลื่อนไหวไม่สามารถทำงานได้ในระบบมัลติมีเดีย", "เพราะต้องแสดงขั้นตอนหรือปรากฏการณ์อย่างต่อเนื่อง", "เพราะสามารถใช้งานกับโทรศัพท์มือถือเท่านั้น"], answer: "เพราะต้องแสดงขั้นตอนหรือปรากฏการณ์อย่างต่อเนื่อง" }
+      ],
+      medium: [
+        { question: "ตัวอย่างใดเป็นสื่อดิจิทัลในรูปแบบมัลติมีเดีย?", choices: ["หนังสือเรียนกระดาษ", "วิดีโอเกม", "สมุดบันทึก", "โพสต์อิท"], answer: "วิดีโอเกม" },
+        { question: "องค์ประกอบใดของมัลติมีเดียช่วยในการสร้างปฏิสัมพันธ์กับผู้ใช้?", choices: ["ข้อความ", "เสียง", "ภาพเคลื่อนไหว", "วิดีโอ"], answer: "ภาพเคลื่อนไหว" },
+        { question: "ข้อความไฮเปอร์เท็กซ์ (Hypertext) มีคุณสมบัติอย่างไร?", choices: ["สามารถพิมพ์ออกมาได้เท่านั้น", "ไม่สามารถเชื่อมโยงได้", "สามารถลิงก์ไปยังข้อความอื่นได้", "ใช้เฉพาะในโทรศัพท์เท่านั้น"], answer: "สามารถลิงก์ไปยังข้อความอื่นได้" },
+        { question: "สื่อดิจิทัลหมายถึงอะไร?", choices: ["สื่ออิเล็กทรอนิกส์ซึ่งทํางานโดยใช้รหัสดิจิทัล", "หนังสือพิมพ์", "เสียงจากธรรมชาติ", "สัญญาณแอนะล็อก"], answer: "สื่ออิเล็กทรอนิกส์ซึ่งทํางานโดยใช้รหัสดิจิทัล" },
+        { question: "มัลติมีเดียแตกต่างจากสื่อทั่วไปอย่างไร?", choices: ["มีปฏิสัมพันธ์กับผู้ใช้", "ใช้เฉพาะภาพนิ่ง", "ไม่มีองค์ประกอบของเสียง", "แสดงเฉพาะข้อความ"], answer: "มีปฏิสัมพันธ์กับผู้ใช้" }
+      ],
+      hard: [
+  {
+    question: "ข้อใดคือลักษณะของข้อความไฮเปอร์เท็กซ์?",
+    choices: [
+      "สามารถลิงก์ไปยังข้อมูลอื่นได้",
+      "เป็นภาพนิ่ง",
+      "เป็นเสียงความละเอียดสูง",
+      "ใช้ได้เฉพาะออฟไลน์"
+    ],
+    answer: "สามารถลิงก์ไปยังข้อมูลอื่นได้"
+  },
+  {
+    question: "ข้อใดกล่าวถูกต้องเกี่ยวกับการสร้าง Storyboard?",
+    choices: [
+      "เป็นการวางโครงเรื่องลำดับฉากก่อนผลิตสื่อ",
+      "ใช้สร้างเฉพาะเกมเท่านั้น",
+      "ใช้เพื่อเขียนโปรแกรมโดยตรง",
+      "ใช้แทนเสียงบรรยายในวิดีโอ"
+    ],
+    answer: "เป็นการวางโครงเรื่องลำดับฉากก่อนผลิตสื่อ"
+  },
+  {
+    question: "เหตุใดจึงต้องวิเคราะห์ความต้องการของผู้ใช้ก่อนการออกแบบสื่อ?",
+    choices: [
+      "เพื่อให้สื่อตรงกับเป้าหมายและกลุ่มผู้ใช้",
+      "เพื่อลดการใช้ทรัพยากรในคอมพิวเตอร์",
+      "เพื่อให้โหลดเร็วขึ้น",
+      "เพื่อไม่ต้องทดสอบสื่อก่อนเผยแพร่"
+    ],
+    answer: "เพื่อให้สื่อตรงกับเป้าหมายและกลุ่มผู้ใช้"
+  },
+  {
+    question: "ปัญหาหลักของการใช้วิดีโอในมัลติมีเดียคืออะไร?",
+    choices: [
+      "ใช้พื้นที่จัดเก็บสูง",
+      "ไม่มีเสียง",
+      "ต้องใช้อินเทอร์เน็ต",
+      "ดูได้เฉพาะบนมือถือ"
+    ],
+    answer: "ใช้พื้นที่จัดเก็บสูง"
+  },
+  {
+    question: "ภาพเคลื่อนไหวในมัลติมีเดียมีประโยชน์อย่างไร?",
+    choices: [
+      "ช่วยแสดงขั้นตอนหรือปรากฏการณ์ต่อเนื่อง",
+      "ลดขนาดไฟล์ให้เล็กลง",
+      "แทนที่ข้อความทั้งหมด",
+      "ใช้ในเสียงพากย์"
+    ],
+    answer: "ช่วยแสดงขั้นตอนหรือปรากฏการณ์ต่อเนื่อง"
+  }
+]
+
+    };
+
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 10;
+
+    function startGame() {
+      const level = document.getElementById('difficulty').value;
+      questions = shuffle([...questionBank[level]]);
+      currentIndex = 0;
+      score = 0;
+      document.getElementById('result').textContent = '';
+      document.getElementById('final-score').textContent = '';
+      document.getElementById('menu-area').style.display = 'none';
+      document.getElementById('game-area').style.display = 'block';
+      document.getElementById('reset-btn').style.display = 'none';
+      showQuestion();
+      history.pushState(null, null, location.href);
+    }
+
+    function resetGame() {
+      clearInterval(timer);
+      document.getElementById('game-area').style.display = 'none';
+      document.getElementById('menu-area').style.display = 'block';
+    }
+
+    function exitGame() {
+        location.href = "index.html";
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function showQuestion() {
+      clearInterval(timer);
+      if (currentIndex >= questions.length) {
+        document.getElementById('result').textContent = '🎉 จบเกมแล้ว!';
+        document.getElementById('final-score').textContent = `คะแนนของคุณ: ${score}/${questions.length}`;
+        document.getElementById('question').textContent = '';
+        document.getElementById('choices').innerHTML = '';
+        document.getElementById('reset-btn').style.display = 'inline-block';
+        return;
+      }
+      const q = questions[currentIndex];
+      const shuffledChoices = shuffle([...q.choices]);
+      timeLeft = 10;
+      document.getElementById('timer').textContent = `เวลา: ${timeLeft}`;
+      document.getElementById('question').textContent = `ข้อ ${currentIndex + 1}: ${q.question}`;
+      const choicesEl = document.getElementById('choices');
+      choicesEl.innerHTML = '';
+      shuffledChoices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.textContent = choice;
+        btn.classList.add('choice');
+        btn.onclick = () => handleAnswer(choice);
+        choicesEl.appendChild(btn);
+      });
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = `เวลา: ${timeLeft}`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          showAnswer(null);
+        }
+      }, 1000);
+    }
+
+    function handleAnswer(choice) {
+      clearInterval(timer);
+      showAnswer(choice);
+    }
+
+    function showAnswer(choice) {
+      const correct = questions[currentIndex].answer;
+      const resultEl = document.getElementById('result');
+      if (choice === correct) {
+        document.getElementById('correctSound').play();
+        resultEl.textContent = "✅ ถูกต้อง!";
+        resultEl.style.color = "green";
+        score++;
+      } else if (choice === null) {
+        resultEl.textContent = "⏰ หมดเวลา! คำตอบคือ: " + correct;
+        resultEl.style.color = "orange";
+      } else {
+        document.getElementById('wrongSound').play();
+        resultEl.textContent = "❌ ผิด! คำตอบคือ: " + correct;
+        resultEl.style.color = "red";
+      }
+      disableChoices();
+      setTimeout(() => {
+        resultEl.textContent = '';
+        currentIndex++;
+        showQuestion();
+      }, 1500);
+    }
+
+    function disableChoices() {
+      document.querySelectorAll('.choice').forEach(btn => {
+        btn.disabled = true;
+        btn.style.background = '#ccc';
+        btn.style.cursor = 'not-allowed';
+      });
+    }
+
+    window.addEventListener("popstate", function () {
+      if (document.getElementById("game-area").style.display === "block") {
+        alert("ไม่สามารถย้อนกลับได้ขณะเล่นเกม!");
+        history.pushState(null, null, location.href);
+      }
+    });
+  </script>
+</body>
+</html>

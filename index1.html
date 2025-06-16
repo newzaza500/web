@@ -1,0 +1,100 @@
+<!-- Wireframe โครงสร้างเว็บไซต์ "เรียนรู้ HTML & CSS เบื้องต้น" -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เรียนรู้ HTML & CSS</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Prompt', sans-serif; margin: 0; background: #f9f9f9; }
+    header, footer { background: #2c3e50; color: white; padding: 20px; text-align: center; }
+    nav { background: #34495e; padding: 10px; text-align: center; }
+    nav a { color: white; margin: 0 15px; text-decoration: none; }
+    main { padding: 20px; max-width: 1000px; margin: auto; }
+    .section { margin-bottom: 40px; }
+    .banner { background: #3498db; color: white; padding: 40px 20px; text-align: center; border-radius: 8px; }
+    .button { background: #2ecc71; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    iframe { width: 100%; height: 400px; border: none; border-radius: 8px; }
+    @media (max-width: 600px) {
+      nav a { display: block; margin: 10px 0; }
+      .banner, .card { padding: 20px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>เว็บไซต์เรียนรู้ HTML & CSS</h1>
+    <p>สร้างเว็บไซต์ง่าย ๆ ด้วยตัวเอง</p>
+  </header>
+
+  <nav>
+    <a href="#home">หน้าแรก</a>
+    <a href="#lessons">บทเรียน</a>
+    <a href="#games">เกมฝึกทักษะ</a>
+    <a href="#videos">วิดีโอ</a>
+    <a href="#about">เกี่ยวกับ</a>
+  </nav>
+
+  <main>
+    <section class="banner" id="home">
+      <h2>เริ่มต้นเรียนรู้ HTML & CSS วันนี้!</h2>
+      <p>ไม่ต้องมีพื้นฐานก็เรียนได้ สนุก เข้าใจง่าย</p>
+      <button class="button">เริ่มเรียนรู้</button>
+    </section>
+
+    <section id="lessons" class="section">
+      <h2>📘 บทเรียน</h2>
+      <div class="card">
+        <h3>บทที่ 1: HTML คืออะไร?</h3>
+        <p>เรียนรู้โครงสร้างของ HTML และ tag พื้นฐาน เช่น &lt;p&gt;, &lt;a&gt;, &lt;img&gt;, &lt;h1&gt;-&lt;h6&gt;</p>
+      </div>
+      <div class="card">
+        <h3>บทที่ 2: ตกแต่งเว็บด้วย CSS</h3>
+        <p>เข้าใจ selector, class, id และการจัดรูปแบบ</p>
+      </div>
+      <div class="card">
+        <h3>บทที่ 3: ฟอร์ม HTML</h3>
+        <p>เรียนรู้ tag &lt;form&gt;, &lt;input&gt;, &lt;textarea&gt;, &lt;button&gt;</p>
+      </div>
+    </section>
+
+    <section id="videos" class="section">
+      <h2>🎥 วิดีโอการสอน</h2>
+      <div class="card">
+        <h3>HTML คืออะไร (60 วินาที)</h3>
+        <iframe src="https://www.youtube.com/embed/dD2EISBDjWM" allowfullscreen></iframe>
+      </div>
+    </section>
+
+    <section id="games" class="section">
+      <h2>🎮 เกมฝึกทักษะ</h2>
+      <div class="card">
+        <h3>เลือกเกม</h3>
+        <p>คลิกเกมที่ต้องการเล่น</p>
+        <ul>
+          <li><a href="#tag-game">🎯 เกมจับคู่ Tag HTML</a></li>
+          <!-- เพิ่มลิงก์ไปเกมอื่นในอนาคต -->
+        </ul>
+      </div>
+
+      <div class="card" id="tag-game">
+        <h3>🎯 เกมจับคู่ Tag HTML</h3>
+        <iframe src="html-tag-game.html" width="100%" height="500" style="border:none; border-radius:8px;"></iframe>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <h2>👩‍💻 เกี่ยวกับเรา</h2>
+      <p>เว็บไซต์นี้จัดทำเพื่อการเรียนรู้ HTML & CSS สำหรับผู้เริ่มต้น โดยเน้นการปฏิบัติจริงผ่านเกมและวิดีโอ</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 เว็บไซต์เรียนรู้ HTML & CSS | วิทยาลัยเทคนิคสมุทรปราการ</p>
+  </footer>
+
+</body>
+</html>
