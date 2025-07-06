@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เกมจับคู่คำศัพท์</title>
+  <script src="https://cdn.jsdelivr.net/npm/leader-line@1.0.7/leader-line.min.js"></script>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: #f9f9f9;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #2c3e50; }
+
+    #start-screen, #game-area, #result-screen {
+      max-width: 800px;
+      margin: auto;
+      transition: 0.3s ease;
+    }
+
+    .hidden {
+      visibility: hidden;
+      height: 0;
+      overflow: hidden;
+      position: absolute;
+    }
+
+    .visible {
+      visibility: visible;
+      height: auto;
+      position: static;
+    }
+
+    .game-container {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .item {
+      background: #ecf0f1;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .item.selected {
+      border-color: #3498db;
+      background: #d6eaf8;
+    }
+
+    .matched {
+      background: #2ecc71 !important;
+      color: white;
+      pointer-events: none;
+    }
+
+    #timer, #score, #result {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      border: none;
+      background: #2ecc71;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #exitAfterBtn {
+      background: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+
+<!-- หน้าจอเริ่มต้น -->
+<div id="start-screen" class="visible">
+  <h1>🎮 เกมจับคู่คำศัพท์</h1>
+  <p>กดปุ่มด้านล่างเมื่อคุณพร้อม</p>
+  <button onclick="startGame()">✅ พร้อมแล้ว เริ่มเกม!</button>
+</div>
+
+<!-- พื้นที่เล่นเกม -->
+<div id="game-area" class="hidden">
+  <div id="timer">⏱ เวลา: 60</div>
+  <div class="game-container">
+    <div class="column" id="left-column"></div>
+    <div class="column" id="right-column"></div>
+  </div>
+</div>
+
+<!-- หน้าจอหลังจบเกม -->
+<div id="result-screen" class="hidden">
+  <div id="result"></div>
+  <div id="score"></div>
+  <button id="exitAfterBtn" onclick="exitGame()">🏠 กลับหน้าเมนู</button>
+</div>
+
+<!-- เสียงตอบถูก/ผิด -->
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+  const pairs = [
+    { left: "HTML", right: "ภาษาสร้างเว็บเพจ" },
+    { left: "CSS", right: "ตกแต่งเว็บไซต์" },
+    { left: "JavaScript", right: "ทำให้เว็บโต้ตอบได้" },
+    { left: "Multimedia", right: "องค์ประกอบของสื่อหลายชนิด" },
+    { left: "Responsive", right: "แสดงผลได้ทุกหน้าจอ" }
+  ];
+
+  let selectedLeft = null;
+  let matched = 0;
+  let timeLeft = 60;
+  let timer;
+  let gameEnded = false;
+  const lines = [];
+
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  function showScreen(id) {
+    const screens = ['start-screen', 'game-area', 'result-screen'];
+    screens.forEach(s => {
+      const el = document.getElementById(s);
+      el.className = (s === id) ? 'visible' : 'hidden';
+    });
+  }
+
+  function startGame() {
+    showScreen("game-area");
+
+    clearInterval(timer);
+    matched = 0;
+    timeLeft = 60;
+    gameEnded = false;
+    selectedLeft = null;
+    lines.forEach(line => line.remove());
+    lines.length = 0;
+
+    const leftCol = document.getElementById("left-column");
+    const rightCol = document.getElementById("right-column");
+    leftCol.innerHTML = "";
+    rightCol.innerHTML = "";
+
+    const shuffledLeft = shuffle([...pairs]);
+    const shuffledRight = shuffle([...pairs]);
+
+    shuffledLeft.forEach(p => {
+      const div = document.createElement("div");
+      div.textContent = p.left;
+      div.classList.add("item");
+      div.dataset.key = p.left;
+      div.onclick = () => selectLeft(div);
+      leftCol.appendChild(div);
+    });
+
+    shuffledRight.forEach(p => {
+      const div = document.createElement("div");
+      div.textContent = p.right;
+      div.classList.add("item");
+      div.dataset.key = p.right;
+      div.onclick = () => selectRight(div);
+      rightCol.appendChild(div);
+    });
+
+    document.getElementById("timer").textContent = `⏱ เวลา: ${timeLeft}`;
+    timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById("timer").textContent = `⏱ เวลา: ${timeLeft}`;
+      if (timeLeft <= 0) {
+        endGame("⏰ หมดเวลา!");
+      }
+    }, 1000);
+  }
+
+  function selectLeft(div) {
+    if (gameEnded || div.classList.contains("matched")) return;
+    document.querySelectorAll("#left-column .item").forEach(el => el.classList.remove("selected"));
+    div.classList.add("selected");
+    selectedLeft = div;
+  }
+
+  function selectRight(div) {
+    if (gameEnded || !selectedLeft || div.classList.contains("matched") || timeLeft <= 0) return;
+
+    const leftKey = selectedLeft.dataset.key;
+    const rightKey = div.dataset.key;
+    const pair = pairs.find(p => p.left === leftKey && p.right === rightKey);
+
+    if (pair) {
+      document.getElementById("correctSound").play();
+      selectedLeft.classList.add("matched");
+      div.classList.add("matched");
+      matched++;
+      const line = new LeaderLine(selectedLeft, div, { color: "#2ecc71", size: 4 });
+      lines.push(line);
+    } else {
+      document.getElementById("wrongSound").play();
+      div.style.background = "#e74c3c";
+      div.style.color = "white";
+      setTimeout(() => {
+        div.style.background = "";
+        div.style.color = "";
+      }, 500);
+      timeLeft -= 5;
+      if (timeLeft < 0) timeLeft = 0;
+    }
+
+    selectedLeft.classList.remove("selected");
+    selectedLeft = null;
+
+    if (matched === pairs.length) {
+      endGame("🎉 จับคู่ครบแล้ว!");
+    }
+  }
+
+  function endGame(message) {
+    clearInterval(timer);
+    gameEnded = true;
+    showScreen("result-screen");
+    document.getElementById("result").textContent = message;
+    document.getElementById("score").textContent = `คะแนนของคุณ: ${matched}/${pairs.length}`;
+  }
+
+  function exitGame() {
+    window.location.href = "index.html"; // หรือเปลี่ยนเป็นหน้าเมนูของคุณ
+  }
+
+  window.onload = () => showScreen("start-screen");
+</script>
+
+</body>
+</html>
