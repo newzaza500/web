@@ -15,7 +15,7 @@
     h1 { color: #2c3e50; }
 
     #start-screen, #game-area, #result-screen {
-      max-width: 800px;
+      max-width: 1000px;
       margin: auto;
       transition: 0.3s ease;
     }
@@ -33,18 +33,11 @@
       position: static;
     }
 
-    .game-container {
+    .pair-row {
       display: flex;
-      justify-content: center;
-      gap: 50px;
-      margin-top: 30px;
-      flex-wrap: wrap;
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
     }
 
     .item {
@@ -53,6 +46,7 @@
       border-radius: 8px;
       cursor: pointer;
       border: 2px solid transparent;
+      width: 45%;
     }
 
     .item.selected {
@@ -98,10 +92,7 @@
 <!-- พื้นที่เล่นเกม -->
 <div id="game-area" class="hidden">
   <div id="timer">⏱ เวลา: 60</div>
-  <div class="game-container">
-    <div class="column" id="left-column"></div>
-    <div class="column" id="right-column"></div>
-  </div>
+  <div id="pair-container"></div>
 </div>
 
 <!-- หน้าจอหลังจบเกม -->
@@ -117,11 +108,11 @@
 
 <script>
   const pairs = [
-    { left: "HTML", right: "ภาษาสร้างเว็บเพจ" },
-    { left: "CSS", right: "ตกแต่งเว็บไซต์" },
-    { left: "JavaScript", right: "ทำให้เว็บโต้ตอบได้" },
-    { left: "Multimedia", right: "องค์ประกอบของสื่อหลายชนิด" },
-    { left: "Responsive", right: "แสดงผลได้ทุกหน้าจอ" }
+    { left: "การออกแบบสื่อดิจิทัลคืออะไร", right: "การสร้างสื่อโดยใช้องค์ประกอบต่าง ๆ เช่น ข้อความ ภาพ เสียง วิดีโอ เพื่อสื่อสารอย่างมีประสิทธิภาพ" },
+    { left: "ตัวอักษร (Typography) ใช้เพื่ออะไร", right: "สื่อสารให้ชัดเจน เลือกฟอนต์ที่อ่านง่าย" },
+    { left: "ภาพ (Images) มีหน้าที่อย่างไร", right: "ดึงดูดความสนใจ และช่วยให้เข้าใจง่ายขึ้น" },
+    { left: "องค์ประกอบกราฟิก (Graphics) หมายถึงอะไร", right: "เส้น ไอคอน ปุ่มอินเทอร์แอคทีฟ" },
+    { left: "เสียงและวิดีโอ (Multimedia) มีประโยชน์อย่างไร", right: "เสริมประสบการณ์แบบสมจริง" }
   ];
 
   let selectedLeft = null;
@@ -154,31 +145,32 @@
     lines.forEach(line => line.remove());
     lines.length = 0;
 
-    const leftCol = document.getElementById("left-column");
-    const rightCol = document.getElementById("right-column");
-    leftCol.innerHTML = "";
-    rightCol.innerHTML = "";
+    const container = document.getElementById("pair-container");
+    container.innerHTML = "";
 
     const shuffledLeft = shuffle([...pairs]);
     const shuffledRight = shuffle([...pairs]);
 
-    shuffledLeft.forEach(p => {
-      const div = document.createElement("div");
-      div.textContent = p.left;
-      div.classList.add("item");
-      div.dataset.key = p.left;
-      div.onclick = () => selectLeft(div);
-      leftCol.appendChild(div);
-    });
+    for (let i = 0; i < pairs.length; i++) {
+      const row = document.createElement("div");
+      row.classList.add("pair-row");
 
-    shuffledRight.forEach(p => {
-      const div = document.createElement("div");
-      div.textContent = p.right;
-      div.classList.add("item");
-      div.dataset.key = p.right;
-      div.onclick = () => selectRight(div);
-      rightCol.appendChild(div);
-    });
+      const left = document.createElement("div");
+      left.classList.add("item");
+      left.textContent = shuffledLeft[i].left;
+      left.dataset.key = shuffledLeft[i].left;
+      left.onclick = () => selectLeft(left);
+
+      const right = document.createElement("div");
+      right.classList.add("item");
+      right.textContent = shuffledRight[i].right;
+      right.dataset.key = shuffledRight[i].right;
+      right.onclick = () => selectRight(right);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      container.appendChild(row);
+    }
 
     document.getElementById("timer").textContent = `⏱ เวลา: ${timeLeft}`;
     timer = setInterval(() => {
@@ -192,7 +184,7 @@
 
   function selectLeft(div) {
     if (gameEnded || div.classList.contains("matched")) return;
-    document.querySelectorAll("#left-column .item").forEach(el => el.classList.remove("selected"));
+    document.querySelectorAll(".item").forEach(el => el.classList.remove("selected"));
     div.classList.add("selected");
     selectedLeft = div;
   }
@@ -234,13 +226,18 @@
   function endGame(message) {
     clearInterval(timer);
     gameEnded = true;
+
+    // 🔧 ลบเส้นโยงทั้งหมด ป้องกัน LeaderLine บัค
+    lines.forEach(line => line.remove());
+    lines.length = 0;
+
     showScreen("result-screen");
     document.getElementById("result").textContent = message;
     document.getElementById("score").textContent = `คะแนนของคุณ: ${matched}/${pairs.length}`;
   }
 
   function exitGame() {
-    window.location.href = "index.html"; // หรือเปลี่ยนเป็นหน้าเมนูของคุณ
+    window.location.href = "index.html"; // เปลี่ยนเป็นหน้าหลักของคุณ
   }
 
   window.onload = () => showScreen("start-screen");
